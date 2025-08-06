@@ -18,11 +18,13 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
   const { isStreaming, startStream, stopStream } = useSSE();
   const { 
     shouldRecover, 
-    recoverySessionId, 
+    recoverySessionId,
+    retryCount,
     saveStreamingState, 
     clearStreamingState,
     recoverStream,
-    dismissRecovery 
+    dismissRecovery,
+    hideRecoveryBanner
   } = useSessionRecovery();
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -95,7 +97,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
         setMessages(prev => [...prev, newMessage]);
         setCurrentStreamingMessage('');
         setStreamingMessageId(null);
-        clearStreamingState();
+        // 成功完成时清理状态（这个会被hook处理）
         break;
       
       case 'error':
@@ -114,7 +116,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
         }
         setCurrentStreamingMessage('');
         setStreamingMessageId(null);
-        clearStreamingState();
+        // 错误时不清理状态，保留用于重试（由hook处理）
         break;
     }
   };
@@ -155,8 +157,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
         // 切换到恢复的会话
         loadSession(recoverySessionId);
       }
+      // 只有恢复成功时才隐藏恢复提示
+      hideRecoveryBanner();
+    } else {
+      // 恢复失败时给用户提示，但保留恢复选项
+      const message = retryCount >= 4 
+        ? '恢复失败多次，可能网络有问题或会话已过期。您可以继续尝试或选择忽略。'
+        : '恢复失败，请稍后重试或检查网络连接';
+      alert(message);
     }
-    dismissRecovery();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -174,7 +183,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ sessionId }) => {
     <div className="chat-interface">
       {shouldRecover && (
         <div className="recovery-banner">
-          <p>检测到中断的对话，是否要恢复？</p>
+          <p>检测到中断的对话，是否要恢复？{retryCount > 0 && ` (第${retryCount + 1}次尝试)`}</p>
           <button onClick={handleRecoverStream}>恢复对话</button>
           <button onClick={dismissRecovery}>忽略</button>
         </div>
