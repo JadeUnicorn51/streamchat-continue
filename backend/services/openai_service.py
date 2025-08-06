@@ -11,7 +11,8 @@ from .error_handler import handle_openai_errors, StreamErrorHandler
 class OpenAIService:
     def __init__(self):
         self.client = AsyncOpenAI(
-            api_key=os.getenv("OPENAI_API_KEY")
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_API_BASE_URL", "https://api.openai.com/v1"),
         )
         self.model = os.getenv("OPENAI_MODEL", "gpt-4")
         self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", "2000"))

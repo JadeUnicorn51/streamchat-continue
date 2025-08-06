@@ -31,7 +31,7 @@ def create_session(
 
 
 @router.get("/{session_id}", response_model=ChatSession)
-def get_session(
+def get_session_info(
         session_id: str,
         db: Session = Depends(get_session)
 ):
