@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Optional
 
 from sqlmodel import SQLModel, Field
+from sqlalchemy import Text
 
 
 class SessionStatus(str, Enum):
@@ -25,7 +26,7 @@ class Message(SQLModel, table=True):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     session_id: str = Field(foreign_key="chatsession.id")
     role: str  # "user" or "assistant"
-    content: str
+    content: str = Field(sa_column=Text)
     is_streaming: bool = Field(default=False)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 

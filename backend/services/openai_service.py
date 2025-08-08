@@ -124,7 +124,7 @@ class OpenAIService:
         """内部继续聊天完成方法"""
         # 获取会话历史
         messages = await self.get_chat_messages(db, session_id)
-
+        messages.insert(0, {"role": "system", "content": "续写未完成的回答"})
         # 添加用户消息和已有的助手回复
         messages.append({
             "role": "user",
@@ -134,11 +134,7 @@ class OpenAIService:
         if existing_content:
             messages.append({
                 "role": "assistant",
-                "content": existing_content + " [继续回答]"
-            })
-            messages.append({
-                "role": "user",
-                "content": "请继续刚才的回答，从中断的地方继续。"
+                "content": existing_content
             })
 
         stream = await self.client.chat.completions.create(
